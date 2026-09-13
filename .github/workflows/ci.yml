@@ -6,18 +6,25 @@ on:
   pull_request:
     branches: [ master, main ]
 
+permissions:
+  contents: read
+
+env:
+  PYTHONUTF8: "1"
+
 jobs:
   test:
     runs-on: windows-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7, 3.8, 3.9, "3.10", "3.11"]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -73,17 +80,20 @@ jobs:
         "
 
   security-scan:
+    name: Advisory Bandit report
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
-    - name: Run security scan with Bandit
+    - name: Run advisory security scan with Bandit
       run: |
         pip install bandit
+        # Preserve the existing advisory/non-blocking behaviour in this hygiene pass.
+        # Blocking secret detection is handled separately by the Gitleaks workflow.
         bandit -r . -f json -o bandit-report.json || true
 
-    - name: Upload security scan results
-      uses: actions/upload-artifact@v3
+    - name: Upload advisory security scan results
+      uses: actions/upload-artifact@v4
       with:
         name: bandit-security-report
         path: bandit-report.json
@@ -91,7 +101,7 @@ jobs:
   documentation:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: Check documentation completeness
       run: |
@@ -108,8 +118,8 @@ jobs:
           fi
         done
 
-        # Check README has basic sections
-        if grep -q "Features" README.md && grep -q "Installation" README.md && grep -q "Usage" README.md; then
+        # Check README has the sections this project actually uses.
+        if grep -q "Features" README.md && grep -q "Quick Setup Guide" README.md && grep -q "Configuration" README.md; then
           echo "✓ README.md has required sections"
         else
           echo "❌ README.md missing required sections"
@@ -132,10 +142,10 @@ jobs:
     runs-on: windows-latest
     needs: test
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: Set up Python 3.9
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v7
       with:
         python-version: 3.9
 
@@ -193,7 +203,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
 
     - name: Check if ready for release
       run: |
