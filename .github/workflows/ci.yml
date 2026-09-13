@@ -114,8 +114,8 @@ jobs:
           fi
         done
 
-        # Check README has basic sections
-        if grep -q "Features" README.md && grep -q "Installation" README.md && grep -q "Usage" README.md; then
+        # Check README has the sections this project actually uses.
+        if grep -q "Features" README.md && grep -q "Quick Setup Guide" README.md && grep -q "Configuration" README.md; then
           echo "✓ README.md has required sections"
         else
           echo "❌ README.md missing required sections"
